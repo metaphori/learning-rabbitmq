@@ -20,8 +20,12 @@ fun main(args: Array<String>) {
     val deliverCallback = { consumerTag: String, delivery: Delivery ->
         val message = String(delivery.getBody(), Charsets.UTF_8)
         log.info(" [x] Received '$message'")
+
+        // Explicit ack (use when basicConsume(..., autoAck=false))
+        // Here we chose to send an ack only to msgs containing an even number: those will be removed by the broker; the other will remain
+        if(message.split(" ").last().toInt()%2==0) channel.basicAck(delivery.envelope.deliveryTag, false)
     }
-    channel.basicConsume(QUEUE_NAME, true, deliverCallback, { consumerTag -> log.debug("Cancelled " + consumerTag)})
+    channel.basicConsume(QUEUE_NAME, false, deliverCallback, { consumerTag -> log.debug("Cancelled " + consumerTag)})
 
     readLine()
 
